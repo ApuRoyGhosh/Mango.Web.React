@@ -38,7 +38,7 @@ export class CartService {
   static async updateCart(cartDto) {
     return BaseService.sendAsync({
       url: `${SD.CartAPIBase}/CartUpsert`,
-      apiType: SD.ApiType.PUT,
+      apiType: SD.ApiType.POST,
       data: cartDto,
     });
   }

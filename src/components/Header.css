@@ -1,0 +1,83 @@
+.header-nav {
+  background-color: #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.16);
+}
+
+.header-brand {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.header-cart-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.2s ease;
+}
+
+.header-cart-link:hover {
+  background-color: rgba(30, 64, 175, 0.85);
+}
+
+.header-cart-icon {
+  position: relative;
+  display: inline-flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.header-cart-badge {
+  position: absolute;
+  top: -0.35rem;
+  left: -0.35rem;
+  min-width: 1.35rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fbbf24;
+  color: #111827;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px #1d4ed8;
+}
+
+.header-cart-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.header-mobile-link {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+  text-align: left;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.header-mobile-link:hover,
+.header-mobile-link:focus {
+  background-color: rgba(255, 255, 255, 0.16);
+  color: #f8fafc;
+}
+
+@media (max-width: 640px) {
+  .header-cart-label {
+    display: none;
+  }
+}

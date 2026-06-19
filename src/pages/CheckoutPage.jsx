@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import CartService from '../services/CartService';
 import OrderService from '../services/OrderService';
 import { CartDto, CartHeaderDto, CartDetailsDto } from '../models';
 import useAuth from '../hooks/useAuth';
+import { showSuccessAlert, showErrorAlert, showWarningAlert } from '../utils/AlertUtils';
 
 export const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -32,17 +32,17 @@ export const CheckoutPage = () => {
       const response = await CartService.getCart(user.id);
       if (response.isSuccess) {
         if (!response.result?.cartDetails || response.result.cartDetails.length === 0) {
-          toast.warning('Your cart is empty');
+          await showWarningAlert('Cart Empty', 'Your cart is empty');
           navigate('/products');
           return;
         }
         setCart(response.result);
       } else {
-        toast.error(response.message || 'Failed to load cart');
+        await showErrorAlert('Failed to Load Cart', response.message || 'Failed to load cart');
         navigate('/cart');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Error', error.message || 'An error occurred');
       navigate('/cart');
     } finally {
       setIsLoading(false);
@@ -62,31 +62,31 @@ export const CheckoutPage = () => {
 
     // Validate required fields
     if (!formData.name.trim()) {
-      toast.error('Name is required');
+      await showErrorAlert('Validation Error', 'Name is required');
       return;
     }
     if (!formData.email.trim()) {
-      toast.error('Email is required');
+      await showErrorAlert('Validation Error', 'Email is required');
       return;
     }
     if (!formData.phoneNumber.trim()) {
-      toast.error('Phone number is required');
+      await showErrorAlert('Validation Error', 'Phone number is required');
       return;
     }
     if (!formData.street.trim()) {
-      toast.error('Street address is required');
+      await showErrorAlert('Validation Error', 'Street address is required');
       return;
     }
     if (!formData.city.trim()) {
-      toast.error('City is required');
+      await showErrorAlert('Validation Error', 'City is required');
       return;
     }
     if (!formData.state.trim()) {
-      toast.error('State is required');
+      await showErrorAlert('Validation Error', 'State is required');
       return;
     }
     if (!formData.postalCode.trim()) {
-      toast.error('Postal code is required');
+      await showErrorAlert('Validation Error', 'Postal code is required');
       return;
     }
 
@@ -117,14 +117,14 @@ export const CheckoutPage = () => {
       const response = await OrderService.createOrder(cartDto);
 
       if (response.isSuccess) {
-        toast.success('Order placed successfully!');
+        await showSuccessAlert('Order Placed Successfully', 'Your order has been placed successfully!');
         // Redirect to order details page
         navigate(`/orders/${response.result.orderHeaderId}`);
       } else {
-        toast.error(response.message || 'Failed to place order');
+        await showErrorAlert('Failed to Place Order', response.message || 'Failed to place order');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred while placing the order');
+      await showErrorAlert('Error', error.message || 'An error occurred while placing the order');
     } finally {
       setIsSubmitting(false);
     }

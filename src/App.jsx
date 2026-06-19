@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import Header from './components/Header';
@@ -18,6 +19,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderPage from './pages/OrderPage';
 import OrderDetailsPage from './pages/OrderDetailsPage';
 import AdminProductPage from './pages/AdminProductPage';
+import AddProductPage from './pages/AddProductPage';
 import AdminOrderPage from './pages/AdminOrderPage';
 import AdminCouponPage from './pages/AdminCouponPage';
 import PaymentPage from './pages/PaymentPage';
@@ -30,94 +32,112 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="flex flex-col min-h-screen bg-gray-50">
-          <Header />
+        <CartProvider>
+          <div className="flex flex-col min-h-screen bg-gray-50">
+            <Header />
 
-          <main className="flex-grow">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/products" element={<ProductPage />} />
-              <Route path="/auth/login" element={<LoginPage />} />
-              <Route path="/auth/register" element={<RegisterPage />} />
+            <main className="flex-grow">
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/products" element={<ProductPage />} />
+                <Route path="/auth/login" element={<LoginPage />} />
+                <Route path="/auth/register" element={<RegisterPage />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/cart"
-                element={
-                  <ProtectedRoute>
-                    <CartPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <CheckoutPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orders"
-                element={
-                  <ProtectedRoute>
-                    <OrderPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orders/:orderId"
-                element={
-                  <ProtectedRoute>
-                    <OrderDetailsPage />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected Routes */}
+                <Route
+                  path="/cart"
+                  element={
+                    <ProtectedRoute>
+                      <CartPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/checkout"
+                  element={
+                    <ProtectedRoute>
+                      <CheckoutPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/orders"
+                  element={
+                    <ProtectedRoute>
+                      <OrderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/orders/:orderId"
+                  element={
+                    <ProtectedRoute>
+                      <OrderDetailsPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Admin Routes */}
-              <Route
-                path="/admin/products"
-                element={
-                  <AdminRoute>
-                    <AdminProductPage />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/admin/orders"
-                element={
-                  <AdminRoute>
-                    <AdminOrderPage />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/admin/coupons"
-                element={
-                  <AdminRoute>
-                    <AdminCouponPage />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/payment/:orderId"
-                element={
-                  <ProtectedRoute>
-                    <PaymentPage />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Admin Routes */}
+                <Route
+                  path="/admin/products"
+                  element={
+                    <AdminRoute>
+                      <AdminProductPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/products/add"
+                  element={
+                    <AdminRoute>
+                      <AddProductPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/products/edit/:productId"
+                  element={
+                    <AdminRoute>
+                      <AddProductPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/orders"
+                  element={
+                    <AdminRoute>
+                      <AdminOrderPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/coupons"
+                  element={
+                    <AdminRoute>
+                      <AdminCouponPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/payment/:orderId"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* 404 */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
+                {/* 404 */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </main>
 
-          <footer className="bg-gray-800 text-white text-center py-4 mt-8">
-            <p>&copy; 2024 Mango Store. All rights reserved.</p>
-          </footer>
-        </div>
+            <footer className="bg-gray-800 text-white text-center py-4 mt-8">
+              <p>&copy; 2024 Mango Store. All rights reserved.</p>
+            </footer>
+          </div>
+        </CartProvider>
 
         {/* Toast Notifications */}
         <ToastContainer

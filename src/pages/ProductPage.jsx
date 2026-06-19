@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
 import ProductService from '../services/ProductService';
 import CartService from '../services/CartService';
 import { CartDto, CartHeaderDto, CartDetailsDto } from '../models';
 import useAuth from '../hooks/useAuth';
+import useCart from '../hooks/useCart';
+import { showSuccessAlert, showErrorAlert, showWarningAlert } from '../utils/AlertUtils';
 
 export const ProductPage = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated, user } = useAuth();
+  const { refreshCartCount } = useCart();
   const [addingToCart, setAddingToCart] = useState(null);
 
   useEffect(() => {
@@ -22,10 +24,10 @@ export const ProductPage = () => {
       if (response.isSuccess) {
         setProducts(response.result || []);
       } else {
-        toast.error(response.message || 'Failed to load products');
+        await showErrorAlert('Failed to Load Products', response.message || 'Failed to load products');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Failed to Load Products', error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -33,7 +35,7 @@ export const ProductPage = () => {
 
   const handleAddToCart = async (product) => {
     if (!isAuthenticated) {
-      toast.warning('Please login to add items to cart');
+      await showWarningAlert('Please Login', 'Please login to add items to cart');
       return;
     }
 
@@ -69,12 +71,22 @@ export const ProductPage = () => {
       const response = await CartService.addToCart(cartDto);
       
       if (response.isSuccess) {
-        toast.success(`${product.name} added to cart!`);
+        await showSuccessAlert(
+          'Product Added Successfully',
+          `${product.name} has been added to your cart.`
+        );
+        await refreshCartCount();
       } else {
-        toast.error(response.message || 'Failed to add item to cart');
+        await showErrorAlert(
+          'Failed to Add Product',
+          response.message || 'Failed to add item to cart'
+        );
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred while adding to cart');
+      await showErrorAlert(
+        'Failed to Add Product',
+        error.message || 'An error occurred while adding to cart'
+      );
     } finally {
       setAddingToCart(null);
     }

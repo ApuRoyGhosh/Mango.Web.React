@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import OrderService from '../services/OrderService';
 import useAuth from '../hooks/useAuth';
+import { showErrorAlert } from '../utils/AlertUtils';
 
 export const OrderPage = () => {
   const [orders, setOrders] = useState([]);
@@ -23,10 +23,10 @@ export const OrderPage = () => {
       if (response.isSuccess) {
         setOrders(response.result || []);
       } else {
-        toast.error(response.message || 'Failed to load orders');
+        await showErrorAlert('Failed to Load Orders', response.message || 'Failed to load orders');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Failed to Load Orders', error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }

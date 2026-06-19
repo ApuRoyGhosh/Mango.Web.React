@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import OrderService from '../services/OrderService';
+import { showSuccessAlert, showErrorAlert } from '../utils/AlertUtils';
 
 export const PaymentPage = () => {
   const { orderId } = useParams();
@@ -24,11 +24,11 @@ export const PaymentPage = () => {
       if (response.isSuccess) {
         setOrder(response.result);
       } else {
-        toast.error(response.message || 'Failed to load order');
+        await showErrorAlert('Failed to Load Order', response.message || 'Failed to load order');
         navigate('/orders');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Error', error.message || 'An error occurred');
       navigate('/orders');
     } finally {
       setIsLoading(false);
@@ -41,13 +41,13 @@ export const PaymentPage = () => {
     try {
       const response = await OrderService.validateStripe(order.orderHeaderId);
       if (response.isSuccess) {
-        toast.success('Payment validated successfully');
+        await showSuccessAlert('Payment Validated', 'Payment validated successfully');
         setOrder(response.result);
       } else {
-        toast.error(response.message || 'Payment validation failed');
+        await showErrorAlert('Payment Validation Failed', response.message || 'Payment validation failed');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred during payment validation');
+      await showErrorAlert('Payment Error', error.message || 'An error occurred during payment validation');
     } finally {
       setIsValidating(false);
     }
@@ -65,10 +65,10 @@ export const PaymentPage = () => {
       if (response.isSuccess && response.result?.stripeSessionUrl) {
         window.location.href = response.result.stripeSessionUrl;
       } else {
-        toast.error(response.message || 'Unable to create payment session');
+        await showErrorAlert('Payment Session Error', response.message || 'Unable to create payment session');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred while creating payment session');
+      await showErrorAlert('Payment Error', error.message || 'An error occurred while creating payment session');
     } finally {
       setIsCreatingSession(false);
     }

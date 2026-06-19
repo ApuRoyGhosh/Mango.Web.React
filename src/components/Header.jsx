@@ -1,72 +1,85 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
-import CartService from '../services/CartService';
+import useCart from '../hooks/useCart';
+import './Header.css';
 
 export const Header = () => {
   const { isAuthenticated, user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+  const { cartCount, refreshCartCount, resetCartCount } = useCart();
 
   const handleLogout = () => {
     logout();
-    setCartCount(0);
+    resetCartCount();
     navigate('/');
   };
 
-  useEffect(() => {
-    const loadCartCount = async () => {
-      try {
-        if (!user?.id) {
-          setCartCount(0);
-          return;
-        }
-        const resp = await CartService.getCart(user.id);
-        if (resp?.isSuccess && resp.result) {
-          setCartCount((resp.result.cartDetails && resp.result.cartDetails.length) || 0);
-        } else {
-          setCartCount(0);
-        }
-      } catch {
-        setCartCount(0);
-      }
-    };
-    loadCartCount();
-  }, [user]);
+  const cartBadgeText = cartCount > 99 ? '99+' : cartCount;
 
   const menuLinks = (
     <>
-      <Link to="/products" className="block md:inline-block hover:text-blue-200 transition">
+      <Link to="/products" className="header-cart-link" onClick={() => setIsMobileMenuOpen(false)}>
         Products
       </Link>
 
       {isAuthenticated && (
         <>
-          <Link to="/cart" className="block md:inline-block hover:text-blue-200 transition">
-            🛒 Cart
+          <Link
+            to="/cart"
+            className="header-cart-link"
+            aria-label="View Cart"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <span className="header-cart-icon">
+              <svg
+                className="h-6 w-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 5h13m-6-5v5"
+                />
+              </svg>
+              {cartCount > 0 && (
+                <span className="header-cart-badge">
+                  {cartBadgeText}
+                </span>
+              )}
+            </span>
+            <span className="header-cart-label">Cart</span>
           </Link>
-          <Link to="/orders" className="block md:inline-block hover:text-blue-200 transition">
+          <Link to="/orders" className="header-cart-link" onClick={() => setIsMobileMenuOpen(false)}>
             My Orders
           </Link>
           {isAdmin() && (
             <>
               <Link
                 to="/admin/products"
-                className="block md:inline-block hover:text-blue-200 transition"
+                className="header-cart-link"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Manage Products
               </Link>
               <Link
                 to="/admin/orders"
-                className="block md:inline-block hover:text-blue-200 transition"
+                className="header-cart-link"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Manage Orders
               </Link>
               <Link
                 to="/admin/coupons"
-                className="block md:inline-block hover:text-blue-200 transition"
+                className="header-cart-link"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Manage Coupons
               </Link>
@@ -92,7 +105,7 @@ export const Header = () => {
                 <>
                   <button
                     onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                    className="hover:text-blue-200 transition"
+                    className="header-cart-link flex items-center gap-1"
                   >
                     {user?.name || 'Account'} ⚙️
                   </button>
@@ -116,10 +129,10 @@ export const Header = () => {
                 </>
               ) : (
                 <div className="flex gap-4">
-                  <Link to="/auth/login" className="hover:text-blue-200 transition">
+                  <Link to="/auth/login" className="header-cart-link">
                     Login
                   </Link>
-                  <Link to="/auth/register" className="hover:text-blue-200 transition">
+                  <Link to="/auth/register" className="header-cart-link">
                     Register
                   </Link>
                 </div>
@@ -153,27 +166,26 @@ export const Header = () => {
         </div>
 
         {isMobileMenuOpen && (
-          <div className="md:hidden py-3 space-y-2 border-t border-blue-500">
-            {menuLinks}
-            <div className="border-t border-blue-500 pt-3">
+          <div className="md:hidden py-3 border-t border-blue-500">
+            <div className="space-y-2">
+              {menuLinks}
+            </div>
+            <div className="mt-4 border-t border-blue-500 pt-4 space-y-2">
               {isAuthenticated ? (
                 <>
                   <Link
                     to="/profile"
-                    className="block hover:text-blue-200 transition"
+                    className="header-mobile-link"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Profile
-                  </Link>
-                  <Link to="/cart" className="block hover:text-blue-200 transition" onClick={() => setIsMobileMenuOpen(false)}>
-                    🛒 Cart {cartCount > 0 ? `(${cartCount})` : ''}
                   </Link>
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       handleLogout();
                     }}
-                    className="block text-left w-full hover:text-blue-200 transition"
+                    className="header-mobile-link text-left w-full"
                   >
                     Logout
                   </button>
@@ -182,14 +194,14 @@ export const Header = () => {
                 <>
                   <Link
                     to="/auth/login"
-                    className="block hover:text-blue-200 transition"
+                    className="header-mobile-link"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
                     to="/auth/register"
-                    className="block hover:text-blue-200 transition"
+                    className="header-mobile-link"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Register

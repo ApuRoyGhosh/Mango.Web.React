@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import OrderService from '../services/OrderService';
+import { showErrorAlert } from '../utils/AlertUtils';
 
 export const OrderDetailsPage = () => {
   const { orderId } = useParams();
@@ -20,10 +20,10 @@ export const OrderDetailsPage = () => {
       if (response.isSuccess) {
         setOrder(response.result);
       } else {
-        toast.error(response.message || 'Failed to load order details');
+        await showErrorAlert('Failed to Load Order', response.message || 'Failed to load order details');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Failed to Load Order', error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }

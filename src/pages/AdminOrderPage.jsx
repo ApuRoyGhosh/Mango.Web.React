@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import OrderService from '../services/OrderService';
+import { showSuccessAlert, showErrorAlert } from '../utils/AlertUtils';
 
 const statusOptions = [
   'Pending',
@@ -29,10 +29,10 @@ export const AdminOrderPage = () => {
       if (response.isSuccess) {
         setOrders(response.result || []);
       } else {
-        toast.error(response.message || 'Failed to load orders');
+        await showErrorAlert('Failed to Load Orders', response.message || 'Failed to load orders');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Failed to Load Orders', error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -43,13 +43,13 @@ export const AdminOrderPage = () => {
     try {
       const response = await OrderService.updateOrderStatus(orderId, newStatus);
       if (response.isSuccess) {
-        toast.success('Order status updated successfully');
+        await showSuccessAlert('Order Updated', 'Order status updated successfully');
         await loadOrders();
       } else {
-        toast.error(response.message || 'Failed to update order status');
+        await showErrorAlert('Failed to Update Order', response.message || 'Failed to update order status');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Error', error.message || 'An error occurred');
     } finally {
       setUpdatingOrderId(null);
     }

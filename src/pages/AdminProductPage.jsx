@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import ProductService from '../services/ProductService';
 import { ProductDto } from '../models';
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../utils/AlertUtils';
 
 export const AdminProductPage = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -30,10 +32,10 @@ export const AdminProductPage = () => {
       if (response.isSuccess) {
         setProducts(response.result || []);
       } else {
-        toast.error(response.message || 'Failed to load products');
+        await showErrorAlert('Failed to Load Products', response.message || 'Failed to load products');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Failed to Load Products', error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -100,12 +102,12 @@ export const AdminProductPage = () => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error('Product name is required');
+        await showErrorAlert('Validation Error', 'Product name is required');
       return;
     }
 
     if (!formData.price || parseFloat(formData.price) <= 0) {
-      toast.error('Valid price is required');
+        await showErrorAlert('Validation Error', 'Valid price is required');
       return;
     }
 
@@ -129,33 +131,56 @@ export const AdminProductPage = () => {
       }
 
       if (response.isSuccess) {
-        toast.success(
-          editingProduct ? 'Product updated successfully!' : 'Product created successfully!'
+        await showSuccessAlert(
+          editingProduct ? 'Product Updated Successfully' : 'Product Added Successfully',
+          editingProduct ? 'The product has been updated in the system.' : 'The product has been added to the system.'
         );
         handleCloseModal();
         await loadProducts();
       } else {
-        toast.error(response.message || 'Failed to save product');
+        await showErrorAlert(
+          'Failed to Save Product',
+          response.message || 'Failed to save product'
+        );
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert(
+        'Failed to Save Product',
+        error.message || 'An error occurred'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (productId) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    const confirmed = await showConfirmAlert(
+      'Delete Product',
+      'Are you sure you want to delete this product? This action cannot be undone.',
+      'Delete',
+      'Cancel'
+    );
+
+    if (confirmed) {
       try {
         const response = await ProductService.deleteProduct(productId);
         if (response.isSuccess) {
-          toast.success('Product deleted successfully!');
+          await showSuccessAlert(
+            'Product Deleted Successfully',
+            'The product has been removed from the system.'
+          );
           await loadProducts();
         } else {
-          toast.error(response.message || 'Failed to delete product');
+          await showErrorAlert(
+            'Failed to Delete Product',
+            response.message || 'Failed to delete product'
+          );
         }
       } catch (error) {
-        toast.error(error.message || 'An error occurred');
+        await showErrorAlert(
+          'Failed to Delete Product',
+          error.message || 'An error occurred'
+        );
       }
     }
   };
@@ -169,7 +194,7 @@ export const AdminProductPage = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Product Management</h1>
         <button
-          onClick={handleOpenCreate}
+          onClick={() => navigate('/admin/products/add')}
           className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded transition"
         >
           + Create Product
@@ -180,7 +205,7 @@ export const AdminProductPage = () => {
         <div className="text-center py-12">
           <p className="text-gray-600 mb-4">No products available</p>
           <button
-            onClick={handleOpenCreate}
+            onClick={() => navigate('/admin/products/add')}
             className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition"
           >
             Create First Product
@@ -213,7 +238,7 @@ export const AdminProductPage = () => {
                   </td>
                   <td className="px-6 py-3 text-sm text-center">
                     <button
-                      onClick={() => handleOpenEdit(product)}
+                      onClick={() => navigate(`/admin/products/edit/${product.productId}`)}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-xs mr-2 transition"
                     >
                       Edit

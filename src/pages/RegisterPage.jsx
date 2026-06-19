@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import AuthService from '../services/AuthService';
 import { RegistrationRequestDto } from '../models';
+import { showSuccessAlert, showErrorAlert } from '../utils/AlertUtils';
 
 export const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ export const RegisterPage = () => {
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      await showErrorAlert('Validation Error', 'Passwords do not match');
       return;
     }
 
@@ -45,13 +45,13 @@ export const RegisterPage = () => {
       const response = await AuthService.register(registrationDto);
 
       if (response.isSuccess) {
-        toast.success('Registration successful! Please login.');
+        await showSuccessAlert('Registration Successful', 'Registration successful! Please login.');
         navigate('/auth/login');
       } else {
-        toast.error(response.message || 'Registration failed');
+        await showErrorAlert('Registration Failed', response.message || 'Registration failed');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Error', error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }

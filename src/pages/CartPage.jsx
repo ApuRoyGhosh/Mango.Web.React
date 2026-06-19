@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import CartService from '../services/CartService';
 import useAuth from '../hooks/useAuth';
+import useCart from '../hooks/useCart';
+import { showSuccessAlert, showErrorAlert, showWarningAlert } from '../utils/AlertUtils';
+import { SD } from '../utils/SD';
 
 export const CartPage = () => {
   const [cart, setCart] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState('');
+  const [updatingQuantity, setUpdatingQuantity] = useState(null);
   const { user } = useAuth();
+  const { refreshCartCount } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,20 +22,61 @@ export const CartPage = () => {
     }
   }, [user]);
 
+  // Save cart to localStorage for faster UX fallback
+  const saveCartToStorage = (cartData) => {
+    try {
+      if (cartData) {
+        localStorage.setItem(SD.StorageKeys.Cart, JSON.stringify(cartData));
+      }
+    } catch (error) {
+      console.warn('Failed to save cart to localStorage:', error);
+    }
+  };
+
+  // Load cart from localStorage as fallback
+  const loadCartFromStorage = () => {
+    try {
+      const cached = localStorage.getItem(SD.StorageKeys.Cart);
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      console.warn('Failed to load cart from localStorage:', error);
+      return null;
+    }
+  };
+
   const loadCart = async () => {
     setIsLoading(true);
     try {
       const response = await CartService.getCart(user.id);
       if (response.isSuccess) {
         setCart(response.result);
+        saveCartToStorage(response.result);
         if (response.result?.cartHeader?.couponCode) {
           setAppliedCoupon(response.result.cartHeader.couponCode);
         }
       } else {
-        toast.error(response.message || 'Failed to load cart');
+        // Try to load from localStorage as fallback
+        const cached = loadCartFromStorage();
+        if (cached) {
+          setCart(cached);
+          if (cached?.cartHeader?.couponCode) {
+            setAppliedCoupon(cached.cartHeader.couponCode);
+          }
+        } else {
+          await showErrorAlert('Failed to Load Cart', response.message || 'Failed to load cart');
+        }
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      // Try to load from localStorage as fallback
+      const cached = loadCartFromStorage();
+      if (cached) {
+        setCart(cached);
+        if (cached?.cartHeader?.couponCode) {
+          setAppliedCoupon(cached.cartHeader.couponCode);
+        }
+      } else {
+        await showErrorAlert('Failed to Load Cart', error.message || 'An error occurred');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -41,19 +86,20 @@ export const CartPage = () => {
     try {
       const response = await CartService.removeFromCart(cartDetailsId);
       if (response.isSuccess) {
-        toast.success('Item removed from cart');
-        loadCart();
+        await showSuccessAlert('Item Removed', 'Item removed from cart');
+        await loadCart();
+        await refreshCartCount();
       } else {
-        toast.error(response.message || 'Failed to remove item');
+        await showErrorAlert('Failed to Remove Item', response.message || 'Failed to remove item');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Failed to Remove Item', error.message || 'An error occurred');
     }
   };
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
-      toast.warning('Please enter a coupon code');
+      await showWarningAlert('Enter Coupon Code', 'Please enter a coupon code');
       return;
     }
 
@@ -62,13 +108,13 @@ export const CartPage = () => {
       if (response.isSuccess) {
         setAppliedCoupon(couponCode);
         setCouponCode('');
-        toast.success('Coupon applied!');
+        await showSuccessAlert('Coupon Applied', 'Coupon applied successfully!');
         loadCart();
       } else {
-        toast.error(response.message || 'Failed to apply coupon');
+        await showErrorAlert('Failed to Apply Coupon', response.message || 'Failed to apply coupon');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Failed to Apply Coupon', error.message || 'An error occurred');
     }
   };
 
@@ -77,13 +123,72 @@ export const CartPage = () => {
       const response = await CartService.removeCoupon(cart);
       if (response.isSuccess) {
         setAppliedCoupon('');
-        toast.success('Coupon removed');
+        await showSuccessAlert('Coupon Removed', 'Coupon removed successfully');
         loadCart();
       } else {
-        toast.error(response.message || 'Failed to remove coupon');
+        await showErrorAlert('Failed to Remove Coupon', response.message || 'Failed to remove coupon');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Failed to Remove Coupon', error.message || 'An error occurred');
+    }
+  };
+
+  // Handle quantity increase/decrease with immutable state updates
+  const handleQuantityChange = async (cartDetailsId, delta) => {
+    if (!cart) return;
+
+    // Find the item and calculate new quantity
+    const itemIndex = cart.cartDetails.findIndex(item => item.cartDetailsId === cartDetailsId);
+    if (itemIndex === -1) return;
+
+    const currentItem = cart.cartDetails[itemIndex];
+    const newQuantity = Math.max(1, currentItem.count + delta);
+
+    // Don't update if quantity is same
+    if (newQuantity === currentItem.count) return;
+
+    setUpdatingQuantity(cartDetailsId);
+    try {
+      // Create updated cart with new quantity
+      const updatedDetails = cart.cartDetails.map((item, idx) =>
+        idx === itemIndex ? { ...item, count: newQuantity } : item
+      );
+
+      // Recalculate totals
+      const subtotal = updatedDetails.reduce(
+        (sum, item) => sum + (item.product?.price || 0) * item.count,
+        0
+      );
+
+      const updatedCart = {
+        ...cart,
+        cartDetails: updatedDetails,
+        cartHeader: {
+          ...cart.cartHeader,
+          cartTotal: subtotal
+        }
+      };
+
+      // Optimistically update UI
+      setCart(updatedCart);
+      saveCartToStorage(updatedCart);
+
+      // Sync with backend
+      const response = await CartService.updateCart(updatedCart);
+      if (response.isSuccess) {
+        // Update header cart count
+        await refreshCartCount();
+      } else {
+        // Rollback on failure
+        setCart(cart);
+        await showErrorAlert('Failed to Update Quantity', response.message || 'Failed to update item quantity');
+      }
+    } catch (error) {
+      // Rollback on error
+      setCart(cart);
+      await showErrorAlert('Failed to Update Quantity', error.message || 'An error occurred');
+    } finally {
+      setUpdatingQuantity(null);
     }
   };
 
@@ -123,22 +228,50 @@ export const CartPage = () => {
                 <div className="flex-1">
                   <h3 className="font-bold">{item.product?.name}</h3>
                   <p className="text-gray-600 text-sm">{item.product?.description}</p>
-                  <div className="flex justify-between items-center mt-2">
+                  <div className="text-sm text-gray-600 mb-2">
+                    ${item.product?.price?.toFixed(2)} each
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <button
+                      onClick={() => handleQuantityChange(item.cartDetailsId, -1)}
+                      disabled={item.count <= 1 || updatingQuantity === item.cartDetailsId}
+                      className="bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-800 font-bold w-8 h-8 rounded transition"
+                      aria-label="Decrease quantity"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      value={item.count}
+                      min="1"
+                      disabled
+                      className="w-13 text-center border border-gray-300 rounded px-2 py-1 bg-white"
+                      aria-label="Item quantity"
+                    />
+                    <button
+                      onClick={() => handleQuantityChange(item.cartDetailsId, 1)}
+                      disabled={updatingQuantity === item.cartDetailsId}
+                      className="bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-800 font-bold w-8 h-8 rounded transition"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span className="font-bold text-blue-600">
                       ${(item.product?.price * item.count)?.toFixed(2)}
                     </span>
-                    <span className="text-sm">Qty: {item.count}</span>
+                    <button
+                      onClick={() => handleRemoveItem(item.cartDetailsId)}
+                      className="text-red-600 hover:text-red-800 font-bold text-lg"
+                      aria-label="Remove item"
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleRemoveItem(item.cartDetailsId)}
-                  className="text-red-600 hover:text-red-800 font-bold"
-                >
-                  ✕
-                </button>
               </div>
-            ))}
-          </div>
+            ))}          </div>
         </div>
 
         {/* Order Summary */}

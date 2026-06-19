@@ -4,6 +4,45 @@ import { Link } from 'react-router-dom';
 export const HomePage = () => {
   return (
     <div className="bg-gradient-to-b from-blue-50 to-white">
+      {/* Homepage Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="rounded-3xl bg-gradient-to-r from-amber-400 via-orange-400 to-pink-500 p-8 shadow-xl overflow-hidden">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.24em] text-white/90 font-semibold mb-2">
+                Fresh mango deals
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white">
+                Sweet savings on every order
+              </h2>
+              <p className="mt-3 max-w-2xl text-white/90">
+                Enjoy fast delivery, premium tropical fruit, and special pricing for a limited time.
+              </p>
+            </div>
+            <Link
+              to="/products"
+              className="inline-flex items-center justify-center rounded-full bg-white text-blue-700 font-semibold px-6 py-3 shadow-lg hover:bg-slate-100 transition"
+            >
+              Shop seasonal fruits
+            </Link>
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl bg-white/10 p-4 text-white/95">
+              <p className="text-sm uppercase tracking-[0.24em]">Fast Delivery</p>
+              <p className="mt-2 font-semibold">2-3 day shipping</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4 text-white/95">
+              <p className="text-sm uppercase tracking-[0.24em]">Always Fresh</p>
+              <p className="mt-2 font-semibold">Hand-selected fruit</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4 text-white/95">
+              <p className="text-sm uppercase tracking-[0.24em]">Trusted Quality</p>
+              <p className="mt-2 font-semibold">Top-rated produce</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <h1 className="text-5xl font-bold text-gray-900 mb-4">Welcome to 🥭 Mango Store</h1>

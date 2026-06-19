@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import useAuth from '../hooks/useAuth';
 import AuthService from '../services/AuthService';
 import { LoginRequestDto, UserDto } from '../models';
+import { showSuccessAlert, showErrorAlert } from '../utils/AlertUtils';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -31,13 +31,13 @@ export const LoginPage = () => {
           result.user?.roles
         );
         login(userData, result.token);
-        toast.success('Login successful!');
+        await showSuccessAlert('Login Successful', 'Welcome! You have been logged in successfully.');
         navigate('/');
       } else {
-        toast.error(response.message || 'Login failed');
+        await showErrorAlert('Login Failed', response.message || 'Login failed');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred');
+      await showErrorAlert('Login Error', error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
