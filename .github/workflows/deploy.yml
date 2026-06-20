@@ -1,50 +1,77 @@
-name: Deploy React frontend to AWS
+# name: Deploy React frontend to AWS
+
+# on:
+#   push:
+#     branches:
+#       - master
+#   workflow_dispatch:
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+
+#     env:
+#       AWS_REGION: ${{ secrets.AWS_REGION }}
+#       S3_BUCKET: ${{ secrets.S3_BUCKET }}
+#       CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+#       VITE_AUTH_API_BASE: ${{ secrets.VITE_AUTH_API_BASE }}
+#       VITE_PRODUCT_API_BASE: ${{ secrets.VITE_PRODUCT_API_BASE }}
+#       VITE_COUPON_API_BASE: ${{ secrets.VITE_COUPON_API_BASE }}
+#       VITE_CART_API_BASE: ${{ secrets.VITE_CART_API_BASE }}
+#       VITE_ORDER_API_BASE: ${{ secrets.VITE_ORDER_API_BASE }}
+
+#     steps:
+#       - name: Check out repository
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
+#           cache: npm
+
+#       - name: Install dependencies
+#         run: npm ci
+
+#       - name: Build frontend
+#         run: npm run build
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
+
+#       - name: Sync build output to S3
+#         run: aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }} --delete
+
+#       - name: Invalidate CloudFront cache
+#         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+
+name: Deploy React app to EC2
 
 on:
   push:
     branches:
       - master
-  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      S3_BUCKET: ${{ secrets.S3_BUCKET }}
-      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
-      VITE_AUTH_API_BASE: ${{ secrets.VITE_AUTH_API_BASE }}
-      VITE_PRODUCT_API_BASE: ${{ secrets.VITE_PRODUCT_API_BASE }}
-      VITE_COUPON_API_BASE: ${{ secrets.VITE_COUPON_API_BASE }}
-      VITE_CART_API_BASE: ${{ secrets.VITE_CART_API_BASE }}
-      VITE_ORDER_API_BASE: ${{ secrets.VITE_ORDER_API_BASE }}
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Deploy through SSH
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Sync build output to S3
-        run: aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }} --delete
-
-      - name: Invalidate CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/Mango.Web.React
+            git pull origin master
+            npm install
+            npm run build
+            sudo rm -rf /var/www/html/*
+            sudo cp -r dist/* /var/www/html/
+            sudo systemctl reload nginx
