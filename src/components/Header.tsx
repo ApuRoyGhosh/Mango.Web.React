@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import useCart from '../hooks/useCart';
+// @ts-ignore: allow side-effect CSS import without type declarations
 import './Header.css';
 
 export const Header = () => {
@@ -14,6 +15,8 @@ export const Header = () => {
   const handleLogout = () => {
     logout();
     resetCartCount();
+    setIsUserMenuOpen(false);
+    setIsMobileMenuOpen(false);
     navigate('/');
   };
 
@@ -102,32 +105,34 @@ export const Header = () => {
                 {menuLinks}
                 <div className="relative">
                   {isAuthenticated ? (
-                <>
-                  <button
-                    onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                    className="header-cart-link flex items-center gap-1"
-                  >
-                    {user?.name || 'Account'} ⚙️
-                  </button>
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-lg z-10">
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 hover:bg-gray-100"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        Profile
-                      </Link>
+                    <>
                       <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                        type="button"
+                        onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                        className="header-cart-link flex items-center gap-1"
                       >
-                        Logout
+                        {user?.name || 'Account'} ⚙️
                       </button>
-                    </div>
-                  )}
-                </>
-              ) : (
+                      {isUserMenuOpen && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-lg z-10">
+                          <Link
+                            to="/profile"
+                            className="block px-4 py-2 hover:bg-gray-100"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            Profile
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={handleLogout}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                          >
+                            Logout
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
                 <div className="flex gap-4">
                   <Link to="/auth/login" className="header-cart-link">
                     Login

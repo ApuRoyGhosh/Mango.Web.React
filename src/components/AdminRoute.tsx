@@ -2,12 +2,16 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 
+interface AdminRouteProps {
+  children: React.ReactNode;
+}
+
 /**
  * Admin protected route component
  * Redirects to login if not authenticated
  * Redirects to home if not admin
  */
-export const AdminRoute = ({ children }) => {
+export const AdminRoute = ({ children }: AdminRouteProps) => {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
 
   if (isLoading) {

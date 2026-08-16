@@ -23,10 +23,19 @@ export const CheckoutPage = () => {
   });
 
   useEffect(() => {
+    if (!user?.id) {
+      navigate('/auth/login', { replace: true });
+      return;
+    }
+
     loadCart();
-  }, [user]);
+  }, [user, navigate]);
 
   const loadCart = async () => {
+    if (!user?.id) {
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await CartService.getCart(user.id);
@@ -148,8 +157,10 @@ export const CheckoutPage = () => {
     );
   }
 
-  const total = cart.cartHeader.cartTotal - (cart.cartHeader.discount || 0);
-  //console.log('CheckoutPage - Cart:', cart);
+  const subtotal = cart.cartHeader.cartTotal || 0;
+  const discount = cart.cartHeader.discount || 0;
+  const total = subtotal - discount;
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
@@ -320,12 +331,12 @@ export const CheckoutPage = () => {
             <div className="border-t pt-4 space-y-2 mb-6">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal:</span>
-                <span>${(cart.cartHeader.cartTotal + (cart.cartHeader.discount || 0))?.toFixed(2)}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
-              {cart.cartHeader.discount > 0 && (
+              {discount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
                   <span>Discount:</span>
-                  <span>-${cart.cartHeader.discount?.toFixed(2)}</span>
+                  <span>-${discount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between font-bold text-lg pt-2 border-t">

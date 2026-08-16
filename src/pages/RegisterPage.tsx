@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthService from '../services/AuthService';
 import { RegistrationRequestDto } from '../models';
 import { showSuccessAlert, showErrorAlert } from '../utils/AlertUtils';
+import useAuth from '../hooks/useAuth';
 
 export const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,18 @@ export const RegisterPage = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        email: user.email || prev.email,
+        name: user.name || prev.name,
+        phoneNumber: user.phoneNumber || prev.phoneNumber,
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -152,9 +165,9 @@ export const RegisterPage = () => {
 
         <p className="mt-4 text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <a href="/auth/login" className="text-blue-600 hover:text-blue-700">
+          <Link to="/auth/login" className="text-blue-600 hover:text-blue-700">
             Login here
-          </a>
+          </Link>
         </p>
       </div>
     </div>
