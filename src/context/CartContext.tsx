@@ -2,13 +2,17 @@ import React, { createContext, useCallback, useEffect, useState } from 'react';
 import useAuth from '../hooks/useAuth';
 import CartService from '../services/CartService';
 
+interface CartProviderProps {
+  children: React.ReactNode;
+}
+
 export const CartContext = createContext({
   cartCount: 0,
   refreshCartCount: async () => {},
   resetCartCount: () => {},
 });
 
-export const CartProvider = ({ children }) => {
+export const CartProvider = ({ children }: CartProviderProps) => {
   const { user } = useAuth();
   const [cartCount, setCartCount] = useState(0);
 

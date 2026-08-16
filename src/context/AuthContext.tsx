@@ -1,6 +1,25 @@
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 import { SD } from '../utils/SD';
 
+interface UserProfile {
+  id?: string | number;
+  email?: string;
+  name?: string;
+  phoneNumber?: string;
+  roles?: string[] | string;
+  [key: string]: any;
+}
+
+interface AuthContextType {
+  user: UserProfile | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (userData: UserProfile | null, authToken: string) => void;
+  logout: () => void;
+  isAdmin: () => boolean;
+}
+
 const normalizeRoles = (roles) => {
   if (!roles) return [];
   if (Array.isArray(roles)) return roles;
@@ -30,11 +49,11 @@ const parseRolesFromToken = (token) => {
   }
 };
 
-export const AuthContext = createContext();
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -94,7 +113,7 @@ export const AuthProvider = ({ children }) => {
     return roles.some((role) => String(role).toLowerCase() === SD.Roles.Admin.toLowerCase());
   }, [user]);
 
-  const value = {
+  const value: AuthContextType = {
     user,
     token,
     isAuthenticated,

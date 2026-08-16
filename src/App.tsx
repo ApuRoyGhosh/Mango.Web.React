@@ -18,6 +18,7 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderPage from './pages/OrderPage';
 import OrderDetailsPage from './pages/OrderDetailsPage';
+import ProfilePage from './pages/ProfilePage';
 import AdminProductPage from './pages/AdminProductPage';
 import AddProductPage from './pages/AddProductPage';
 import AdminOrderPage from './pages/AdminOrderPage';
@@ -74,6 +75,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <OrderDetailsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
                     </ProtectedRoute>
                   }
                 />

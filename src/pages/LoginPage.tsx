@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import AuthService from '../services/AuthService';
 import { LoginRequestDto, UserDto } from '../models';
@@ -89,9 +89,9 @@ export const LoginPage = () => {
 
         <p className="mt-4 text-center text-sm text-gray-600">
           Don't have an account?{' '}
-          <a href="/auth/register" className="text-blue-600 hover:text-blue-700">
+          <Link to="/auth/register" className="text-blue-600 hover:text-blue-700">
             Register here
-          </a>
+          </Link>
         </p>
       </div>
     </div>
